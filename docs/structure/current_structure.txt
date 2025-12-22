@@ -39,9 +39,15 @@
 |           |                       `-- schema.ts
 |           |-- index.ts
 |           |-- lib
+|           |                       `-- math.ts
 |           `-- sim
+|               |                   `-- grid.ts
+|               |                   `-- influence.ts
+|               |                   `-- init.ts
+|               |                   `-- prob.ts
+|               |                   `-- step.ts
 |                                   `-- types.ts
 |-- pnpm-lock.yaml
 `-- pnpm-workspace.yaml
 
-15 directories, 29 files
+15 directories, 35 files

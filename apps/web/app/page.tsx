@@ -2,11 +2,23 @@
 
 import Image from "next/image";
 import { useEffect } from "react";
-import "@ga-life/core";
+import { createGrid, step, DEFAULT_PARAMS } from "@ga-life/core";
 
 export default function Home() {
   useEffect(() => {
-    console.log("Home component mounted. Core package should have logged a message.");
+    console.log("--- Core Logic Tick Test ---");
+
+    // 1. 초기 그리드 (Generation 0) 생성
+    console.log("1. Creating initial grid (Gen 0)...");
+    const gridGen0 = createGrid(10, 10);
+    console.log("   Grid (Gen 0):", gridGen0);
+
+    // 2. 다음 세대 (Generation 1) 계산
+    console.log("2. Stepping to next generation (Gen 1)...");
+    const gridGen1 = step(gridGen0, DEFAULT_PARAMS);
+    console.log("   Grid (Gen 1):", gridGen1);
+
+    console.log("--------------------------");
   }, []);
 
   return (
