@@ -55,3 +55,6 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 .pnp.*
+
+# LLM log files
+docs/llm_log
