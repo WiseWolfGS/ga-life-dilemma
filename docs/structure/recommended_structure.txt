@@ -1,0 +1,61 @@
+ga-life-dilemma/ (pnpm monorepo)
+├─ apps/
+│  └─ web/                                # Next.js UI 애플리케이션
+│     ├─ app/
+│     │  ├─ layout.tsx
+│     │  ├─ page.tsx                      # 메인(시뮬레이터 화면)
+│     │  ├─ globals.css
+│     │  ├─ api/
+│     │  │  ├─ export-run/route.ts
+│     │  │  └─ health/route.ts
+│     │  └─ (dev)/
+│     │     ├─ playground/page.tsx
+│     │     └─ benchmarks/page.tsx
+│     │
+│     ├─ src/
+│     │  ├─ ui/                           # React 컴포넌트, 훅, 스타일
+│     │  │  ├─ components/
+│     │  │  ├─ hooks/
+│     │  │  └─ styles/
+│     │  ├─ engine/                       # 실행 엔진 추상화 (UI와 Core 연결)
+│     │  │  ├─ index.ts
+│     │  │  ├─ engine.types.ts
+│     │  │  ├─ js/engine-js.ts           # packages/core 래퍼
+│     │  │  └─ wasm/engine-wasm.ts       # packages/wasm 래퍼
+│     │  ├─ storage/                      # UI 상태 저장/불러오기
+│     │  └─ lib/                        # UI 특화 헬퍼 (assert 등)
+│     │
+│     ├─ public/
+│     │  └─ wasm/
+│     │     └─ ga_life_bg.wasm
+│     │
+│     ├─ next.config.ts
+│     ├─ tsconfig.json
+│     ├─ eslint.config.mjs
+│     ├─ postcss.config.mjs
+│     └─ package.json                    # "packages/core" 의존
+│
+├─ packages/
+│  ├─ core/                             # 순수 시뮬레이션 로직 (React 의존 X)
+│  │  ├─ src/
+│  │  │  ├─ config/
+│  │  │  ├─ rng/
+│  │  │  ├─ sim/
+│  │  │  ├─ stats/
+│  │  │  ├─ terrain/
+│  │  │  ├─ experiments/
+│  │  │  ├─ lib/                        # 순수 로직용 공용 유틸 (math.ts)
+│  │  │  └─ index.ts                    # 패키지 진입점
+│  │  ├─ test/
+│  │  │  ├─ core.spec.ts
+│  │  │  └─ reproducibility.spec.ts
+│  │  └─ package.json
+│  │
+│  └─ wasm/                             # [향후] Rust/WASM 코어
+│     ├─ src/
+│     ├─ Cargo.toml
+│     └─ package.json
+│
+├─ README.md
+├─ pnpm-workspace.yaml                # pnpm 워크스페이스 정의
+└─ package.json                       # 모노레포 루트

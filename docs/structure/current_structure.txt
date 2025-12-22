@@ -1,0 +1,47 @@
+.
+|-- README.md
+|-- apps
+|                                   `-- web
+|       |                           `-- app
+|       |   |                       `-- favicon.ico
+|       |   |                       `-- globals.css
+|       |   |                       `-- layout.tsx
+|       |                           `-- page.tsx
+|       |-- eslint.config.mjs
+|       |-- next-env.d.ts
+|       |-- next.config.ts
+|       |-- package.json
+|       |-- postcss.config.mjs
+|       |-- public
+|       |   |                       `-- file.svg
+|       |   |                       `-- globe.svg
+|       |   |                       `-- next.svg
+|       |   |                       `-- vercel.svg
+|       |                           `-- window.svg
+|       |-- src
+|       `-- tsconfig.json
+|-- docs
+|   |-- develop_log
+|   |-- etc
+|   |   |-- develop_commands.md
+|   |   `-- mvp_checklist.md
+|   `-- structure
+|       |-- current_structure.txt
+|       `-- recommended_structure.txt
+|-- next-env.d.ts
+|-- package.json
+|-- packages
+|   `-- core
+|       |-- package.json
+|       `-- src
+|           |                       `-- config
+|           |   |                   `-- defaults.ts
+|           |                       `-- schema.ts
+|           |-- index.ts
+|           |-- lib
+|           `-- sim
+|                                   `-- types.ts
+|-- pnpm-lock.yaml
+`-- pnpm-workspace.yaml
+
+15 directories, 29 files
