@@ -19,9 +19,13 @@
 |       |   |                       `-- vercel.svg
 |       |                           `-- window.svg
 |       |-- src
+|       |                           `-- ui
+|       |       |                   `-- components
+|       |                           `-- hooks
 |       `-- tsconfig.json
 |-- docs
 |   |-- develop_log
+|   |   `-- 20251222_developlog.md
 |   |-- etc
 |   |   |-- develop_commands.md
 |   |   `-- mvp_checklist.md
@@ -34,7 +38,7 @@
 |   `-- core
 |       |-- package.json
 |       `-- src
-|           |                       `-- config
+|           |-- config
 |           |   |                   `-- defaults.ts
 |           |                       `-- schema.ts
 |           |-- index.ts
@@ -50,4 +54,4 @@
 |-- pnpm-lock.yaml
 `-- pnpm-workspace.yaml
 
-15 directories, 35 files
+18 directories, 36 files
