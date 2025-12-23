@@ -1,16 +1,9 @@
-import type { Grid, Cell, Gene } from "./types";
+import type { Grid, Cell } from "./types";
 import type { SimParams } from "../config/schema";
 import { hasAliveNeighbor } from "./grid";
 import { calculateInfluence } from "./influence";
 import { calculateSurvivalProbability, calculateBirthProbability } from "./prob";
-import { createGrid } from "./init"; // For placeholder gene creation
-
-// TODO: Replace with actual Genetic Algorithm implementation
-function runGeneticAlgorithm(grid: Grid, index: number): Gene {
-  // Placeholder: Create a random gene for now
-  const randomGene = createGrid(1, 1).cells[0].gene;
-  return randomGene;
-}
+import { runGeneticAlgorithm } from "./ga";
 
 /**
  * 시뮬레이션을 한 세대(tick) 진행합니다.
@@ -44,8 +37,8 @@ export function step(currentGrid: Grid, params: SimParams): Grid {
       if (hasAliveNeighbor(currentGrid, i)) {
         const p_born = calculateBirthProbability(s_total, params);
         if (Math.random() < p_born) {
-          // TODO: Implement parent selection, crossover, and mutation
-          const childGene = runGeneticAlgorithm(currentGrid, i);
+          // 유전 알고리즘 실행
+          const childGene = runGeneticAlgorithm(currentGrid, influenceGrid, i, params);
           nextCell = { isAlive: true, gene: childGene, age: 1 }; // Born
         } else {
           nextCell = { ...currentCell }; // Stays dead

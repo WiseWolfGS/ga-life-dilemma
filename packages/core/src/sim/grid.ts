@@ -1,4 +1,4 @@
-import type { Grid } from "./types";
+import type { Grid, Cell } from "./types";
 
 /**
  * 그리드 관련 유틸리티 함수
@@ -42,13 +42,33 @@ export function getNeighborIndex(index: number, dx: number, dy: number, width: n
  * @returns 살아있는 이웃이 있으면 true, 아니면 false
  */
 export function hasAliveNeighbor(grid: Grid, index: number): boolean {
-  const { width, height, cells } = grid;
+  return getNeighborIndices(grid, index).some(i => grid.cells[i].isAlive);
+}
+
+/**
+ * 특정 칸의 주변 8칸 이웃의 인덱스 목록을 반환합니다.
+ * @param grid - 현재 그리드
+ * @param index - 기준 칸의 인덱스
+ * @returns 이웃 인덱스들의 배열
+ */
+export function getNeighborIndices(grid: Grid, index: number): number[] {
+  const { width, height } = grid;
+  const indices: number[] = [];
   for (const key in DIRECTIONS) {
     const [dx, dy] = DIRECTIONS[key as keyof typeof DIRECTIONS];
-    const neighborIndex = getNeighborIndex(index, dx, dy, width, height);
-    if (cells[neighborIndex].isAlive) {
-      return true;
-    }
+    indices.push(getNeighborIndex(index, dx, dy, width, height));
   }
-  return false;
+  return indices;
+}
+
+/**
+ * 특정 칸의 주변 8칸 이웃 중 살아있는 세포 목록을 반환합니다.
+ * @param grid - 현재 그리드
+ * @param index - 기준 칸의 인덱스
+ * @returns 살아있는 이웃 세포들의 배열
+ */
+export function getNeighbors(grid: Grid, index: number): Cell[] {
+  return getNeighborIndices(grid, index)
+    .map(i => grid.cells[i])
+    .filter(cell => cell.isAlive);
 }

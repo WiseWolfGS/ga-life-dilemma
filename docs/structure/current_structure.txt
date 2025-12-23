@@ -1,27 +1,29 @@
 .
+|-- LICENSE
 |-- README.md
 |-- apps
-|                                   `-- web
-|       |                           `-- app
-|       |   |                       `-- favicon.ico
-|       |   |                       `-- globals.css
-|       |   |                       `-- layout.tsx
-|       |                           `-- page.tsx
+|                                                                   `-- web
+|       |                                                           `-- app
+|       |   |                                                       `-- favicon.ico
+|       |   |                                                       `-- globals.css
+|       |   |                                                       `-- layout.tsx
+|       |                                                           `-- page.tsx
 |       |-- eslint.config.mjs
 |       |-- next-env.d.ts
 |       |-- next.config.ts
 |       |-- package.json
 |       |-- postcss.config.mjs
 |       |-- public
-|       |   |                       `-- file.svg
-|       |   |                       `-- globe.svg
-|       |   |                       `-- next.svg
-|       |   |                       `-- vercel.svg
-|       |                           `-- window.svg
+|       |   |                                                       `-- file.svg
+|       |   |                                                       `-- globe.svg
+|       |   |                                                       `-- next.svg
+|       |   |                                                       `-- vercel.svg
+|       |                                                           `-- window.svg
 |       |-- src
-|       |                           `-- ui
-|       |       |                   `-- components
-|       |                           `-- hooks
+|       |                                                           `-- ui
+|       |       |                                                   `-- components
+|       |       |                                                   `-- hooks
+|       |                                                           `-- types.ts
 |       `-- tsconfig.json
 |-- docs
 |   |-- develop_log
@@ -29,6 +31,8 @@
 |   |-- etc
 |   |   |-- develop_commands.md
 |   |   `-- mvp_checklist.md
+|   |-- llm_log
+|   |   `-- 20251222_gemini.txt
 |   `-- structure
 |       |-- current_structure.txt
 |       `-- recommended_structure.txt
@@ -39,19 +43,20 @@
 |       |-- package.json
 |       `-- src
 |           |-- config
-|           |   |                   `-- defaults.ts
-|           |                       `-- schema.ts
+|           |   |                                                   `-- defaults.ts
+|           |                                                       `-- schema.ts
 |           |-- index.ts
 |           |-- lib
-|           |                       `-- math.ts
+|           |                                                       `-- math.ts
 |           `-- sim
-|               |                   `-- grid.ts
-|               |                   `-- influence.ts
-|               |                   `-- init.ts
-|               |                   `-- prob.ts
-|               |                   `-- step.ts
-|                                   `-- types.ts
+|               |                                                   `-- ga.ts
+|               |                                                   `-- grid.ts
+|               |                                                   `-- influence.ts
+|               |                                                   `-- init.ts
+|               |                                                   `-- prob.ts
+|               |                                                   `-- step.ts
+|                                                                   `-- types.ts
 |-- pnpm-lock.yaml
 `-- pnpm-workspace.yaml
 
-18 directories, 36 files
+19 directories, 40 files
