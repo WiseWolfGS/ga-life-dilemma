@@ -5,6 +5,9 @@ import type { ViewMode, GeneDirection } from "../types";
 interface ParamPanelProps {
   params: SimParams;
   setParams: React.Dispatch<React.SetStateAction<SimParams>>;
+  seed: number;
+  setSeed: (seed: number) => void;
+  onReset: () => void;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
   geneDirection: GeneDirection;
@@ -18,6 +21,28 @@ const ParamInput = ({ name, value, min, max, step, onChange }: { name: string; v
     <label htmlFor={name} className="text-sm text-zinc-600 dark:text-zinc-400">{name}</label>
     <input type="range" id={name} name={name} min={min} max={max} step={step} value={value} onChange={onChange} className="col-span-2 h-2 cursor-pointer appearance-none rounded-lg bg-zinc-200 dark:bg-zinc-700" />
     <span className="col-start-3 justify-self-end text-sm font-mono text-zinc-800 dark:text-zinc-200">{value.toFixed(3)}</span>
+  </div>
+);
+
+const SeedControl = ({ seed, setSeed, onReset }: { seed: number; setSeed: (seed: number) => void; onReset: () => void; }) => (
+  <div className="space-y-2">
+    <h4 className="text-base font-medium text-zinc-900 dark:text-zinc-50">Seed</h4>
+    <div className="flex gap-2">
+      <input
+        type="number"
+        value={seed}
+        onChange={(e) => {
+          const nextSeed = Number(e.target.value);
+          if (Number.isFinite(nextSeed)) {
+            setSeed(nextSeed);
+          }
+        }}
+        className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 shadow-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+      />
+      <button onClick={onReset} className="rounded-md bg-zinc-200 px-3 py-1.5 text-sm text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600">
+        Apply
+      </button>
+    </div>
   </div>
 );
 
@@ -61,7 +86,7 @@ const FileIO = ({ onSave, onLoadClick }: { onSave: () => void; onLoadClick: () =
     </div>
 );
 
-export function ParamPanel({ params, setParams, viewMode, setViewMode, geneDirection, setGeneDirection, onSave, onLoadClick }: ParamPanelProps) {
+export function ParamPanel({ params, setParams, seed, setSeed, onReset, viewMode, setViewMode, geneDirection, setGeneDirection, onSave, onLoadClick }: ParamPanelProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setParams((prevParams) => ({ ...prevParams, [name]: Number(value) }));
@@ -79,6 +104,8 @@ export function ParamPanel({ params, setParams, viewMode, setViewMode, geneDirec
           <ParamInput name="beta" value={params.beta} min={-1} max={1} step={0.05} onChange={handleChange} />
         </div>
       </div>
+      <hr className="border-zinc-200 dark:border-zinc-700" />
+      <SeedControl seed={seed} setSeed={setSeed} onReset={onReset} />
       <hr className="border-zinc-200 dark:border-zinc-700" />
       <ViewModeSelector viewMode={viewMode} setViewMode={setViewMode} geneDirection={geneDirection} setGeneDirection={setGeneDirection} />
       <hr className="border-zinc-200 dark:border-zinc-700" />

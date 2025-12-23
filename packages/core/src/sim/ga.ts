@@ -1,102 +1,115 @@
 import type { Cell, Gene, Grid } from "./types";
 import type { SimParams } from "../config/schema";
-import { getNeighbors, getNeighborIndices } from "./grid";
+import { getNeighborIndices } from "./grid";
+import type { RngLike } from "../lib/rng";
 import { calculateSurvivalProbability } from "./prob";
 
 const GENE_DOMAIN = [2, 4, 6, 8, 10];
-const getRandomGeneValue = () => GENE_DOMAIN[Math.floor(Math.random() * GENE_DOMAIN.length)];
+const getRandomGeneValue = (rng: RngLike) =>
+  GENE_DOMAIN[Math.floor(rng() * GENE_DOMAIN.length)];
 
 /**
- * 적합도 비례 선택(룰렛 휠 선택)을 사용하여 부모 후보 중에서 하나를 선택합니다.
- * @param candidates - 부모 후보가 될 세포 배열
- * @param fitnesses - 각 후보의 적합도(생존 확률) 배열
- * @returns 선택된 부모 세포
+ * Select a parent using roulette-wheel selection.
+ * @param candidates - parent candidate cells
+ * @param fitnesses - fitness values for candidates
+ * @param rng - random generator
+ * @returns chosen parent cell
  */
-function selectOneParent(candidates: Cell[], fitnesses: number[]): Cell {
+function selectOneParent(candidates: Cell[], fitnesses: number[], rng: RngLike): Cell {
   const totalFitness = fitnesses.reduce((sum, f) => sum + f, 0);
   if (totalFitness === 0) {
-    // 모든 후보의 적합도가 0이면, 무작위로 하나를 선택합니다.
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    // Fallback to uniform selection when all fitness values are 0.
+    return candidates[Math.floor(rng() * candidates.length)];
   }
 
-  let randomPoint = Math.random() * totalFitness;
+  let randomPoint = rng() * totalFitness;
   for (let i = 0; i < candidates.length; i++) {
     randomPoint -= fitnesses[i];
     if (randomPoint <= 0) {
       return candidates[i];
     }
   }
-  // 반올림 오류 등으로 루프가 끝날 경우 마지막 후보를 반환합니다.
+  // Numerical edge case: return last candidate.
   return candidates[candidates.length - 1];
 }
 
 /**
- * 균등 교차(Uniform Crossover)를 수행합니다.
- * @param parentA - 부모 A의 유전자
- * @param parentB - 부모 B의 유전자
- * @returns 새로운 자식 유전자
+ * Uniform crossover between two parents.
+ * @param parentA - parent A gene
+ * @param parentB - parent B gene
+ * @param rng - random generator
+ * @returns child gene
  */
-function crossover(parentA: Gene, parentB: Gene): Gene {
+function crossover(parentA: Gene, parentB: Gene, rng: RngLike): Gene {
   const childGene: Gene = [0, 0, 0, 0];
   for (let i = 0; i < 4; i++) {
-    childGene[i] = Math.random() < 0.5 ? parentA[i] : parentB[i];
+    childGene[i] = rng() < 0.5 ? parentA[i] : parentB[i];
   }
   return childGene;
 }
 
 /**
- * 부분 변이(Per-locus mutation)를 수행합니다.
- * @param gene - 교차를 거친 유전자
- * @param p_mut - 각 좌위의 변이 확률
- * @returns 최종 자식 유전자
+ * Per-locus mutation.
+ * @param gene - gene after crossover
+ * @param p_mut - mutation probability per locus
+ * @param rng - random generator
+ * @returns mutated gene
  */
-function mutate(gene: Gene, p_mut: number): Gene {
+function mutate(gene: Gene, p_mut: number, rng: RngLike): Gene {
   const mutatedGene = gene.slice() as Gene;
   for (let i = 0; i < 4; i++) {
-    if (Math.random() < p_mut) {
-      mutatedGene[i] = getRandomGeneValue();
+    if (rng() < p_mut) {
+      mutatedGene[i] = getRandomGeneValue(rng);
     }
   }
   return mutatedGene;
 }
 
 /**
- * 새로운 세포가 태어날 때 호출되는 유전 알고리즘 파이프라인입니다.
- * @param grid - 현재 세대 그리드
- * @param influenceGrid - 계산된 영향력 그리드
- * @param index - 세포가 태어날 위치의 인덱스
- * @param params - 시뮬레이션 파라미터
- * @returns 자손의 유전자
+ * Genetic algorithm applied when a new cell is born.
+ * @param grid - current grid
+ * @param influenceGrid - precomputed influence grid
+ * @param index - target index where the cell is born
+ * @param params - simulation parameters
+ * @param rng - random generator
+ * @returns child gene
  */
 export function runGeneticAlgorithm(
   grid: Grid,
   influenceGrid: number[],
   index: number,
-  params: SimParams
+  params: SimParams,
+  rng: RngLike = Math.random
 ): Gene {
-  // 1. 부모 후보 선정 (8방향 이웃)
-  const parentCandidates = getNeighbors(grid, index);
-  const parentIndices = getNeighborIndices(grid, index);
+  // 1. Select alive neighbors as parent candidates.
+  const neighborIndices = getNeighborIndices(grid, index);
+  const parentIndices = neighborIndices.filter(i => grid.cells[i].isAlive);
+  const parentCandidates = parentIndices.map(i => grid.cells[i]);
 
   if (parentCandidates.length === 0) {
-    // 주변에 부모가 없으면 무작위 유전자 생성 (예외 케이스)
-    return [getRandomGeneValue(), getRandomGeneValue(), getRandomGeneValue(), getRandomGeneValue()];
+    // No parents available: generate a random gene.
+    return [
+      getRandomGeneValue(rng),
+      getRandomGeneValue(rng),
+      getRandomGeneValue(rng),
+      getRandomGeneValue(rng),
+    ];
   }
 
-  // 2. 적합도 계산 (각 후보의 생존 확률)
+  // 2. Fitness calculation using survival probability.
   const fitnesses = parentIndices.map(i =>
     calculateSurvivalProbability(influenceGrid[i], params)
   );
 
-  // 3. 부모 선택 (룰렛 휠 선택으로 2명)
-  const parentA = selectOneParent(parentCandidates, fitnesses);
-  const parentB = selectOneParent(parentCandidates, fitnesses);
+  // 3. Parent selection (roulette-wheel).
+  const parentA = selectOneParent(parentCandidates, fitnesses, rng);
+  const parentB = selectOneParent(parentCandidates, fitnesses, rng);
 
-  // 4. 교차 (균등 교차)
-  const childGene = crossover(parentA.gene, parentB.gene);
+  // 4. Crossover (uniform).
+  const childGene = crossover(parentA.gene, parentB.gene, rng);
 
-  // 5. 변이 (부분 변이)
-  const finalGene = mutate(childGene, params.p_mut);
+  // 5. Mutation (per locus).
+  const finalGene = mutate(childGene, params.p_mut, rng);
 
   return finalGene;
 }

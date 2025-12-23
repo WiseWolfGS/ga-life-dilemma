@@ -2,9 +2,9 @@ import type { Grid } from "./types";
 import { DIRECTIONS, getNeighborIndex } from "./grid";
 
 /**
- * 그리드의 각 칸이 받는 총 영향력(S_total)을 계산합니다.
- * @param grid - 현재 세대의 그리드
- * @returns 각 칸의 총 영향력을 담은 배열
+ * Calculate total influence (S_total) received by each cell.
+ * @param grid - current generation grid
+ * @returns array of total influence values per cell
  */
 export function calculateInfluence(grid: Grid): number[] {
   const { width, height, cells, terrain } = grid;
@@ -16,7 +16,7 @@ export function calculateInfluence(grid: Grid): number[] {
       continue;
     }
 
-    // 1. 현재 칸의 지형에 따른 영향력 배율 결정
+    // 1. Determine terrain-based multiplier for this cell.
     const terrainType = terrain[i];
     let multiplier = 1;
     if (terrainType === "double") {
@@ -25,7 +25,7 @@ export function calculateInfluence(grid: Grid): number[] {
       multiplier = 0.5;
     }
 
-    // 2. 세포의 유전자에 기반한 기본 영향력 계산
+    // 2. Base influence derived from the gene.
     const [u, d, l, r] = cell.gene;
     const influences = {
       UP: u,
@@ -38,7 +38,7 @@ export function calculateInfluence(grid: Grid): number[] {
       DOWN_RIGHT: (d + r) / 2 - 1,
     };
 
-    // 3. 8방향 이웃에 지형 배율이 적용된 영향력 전파
+    // 3. Propagate influence to 8 neighbors with terrain multiplier applied.
     for (const key in DIRECTIONS) {
       const directionKey = key as keyof typeof DIRECTIONS;
       const [dx, dy] = DIRECTIONS[directionKey];
@@ -49,6 +49,6 @@ export function calculateInfluence(grid: Grid): number[] {
     }
   }
 
-  // 최종 합산된 S_total에 반올림을 적용합니다.
+  // Apply rounding to final S_total values.
   return influenceGrid.map(s_total => Math.round(s_total * 10) / 10);
 }

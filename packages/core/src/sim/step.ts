@@ -3,21 +3,22 @@ import type { SimParams } from "../config/schema";
 import { hasAliveNeighbor } from "./grid";
 import { calculateInfluence } from "./influence";
 import { calculateSurvivalProbability, calculateBirthProbability } from "./prob";
+import type { RngLike } from "../lib/rng";
 import { runGeneticAlgorithm } from "./ga";
 
 /**
- * 시뮬레이션을 한 세대(tick) 진행합니다.
- * @param currentGrid - 현재 세대의 그리드
- * @param params - 시뮬레이션 파라미터
- * @returns 다음 세대의 새로운 그리드
+ * Advance the simulation by one tick.
+ * @param currentGrid - current grid state
+ * @param params - simulation parameters
+ * @returns next generation grid
  */
-export function step(currentGrid: Grid, params: SimParams): Grid {
-  // 1. 영향력 합산 (Influence Aggregation)
+export function step(currentGrid: Grid, params: SimParams, rng: RngLike = Math.random): Grid {
+  // 1. Influence aggregation
   const influenceGrid = calculateInfluence(currentGrid);
 
   const nextCells: Cell[] = [];
 
-  // 2. 판정 및 자손 생성 (Judgment & Reproduction)
+  // 2. Judgment & reproduction
   for (let i = 0; i < currentGrid.cells.length; i++) {
     const currentCell = currentGrid.cells[i];
     const s_total = influenceGrid[i];
@@ -31,7 +32,7 @@ export function step(currentGrid: Grid, params: SimParams): Grid {
         p_live = 0;
       }
 
-      if (Math.random() < p_live) {
+      if (rng() < p_live) {
         nextCell = { ...currentCell, age: currentCell.age + 1 };
       } else {
         nextCell = { isAlive: false, gene: [0, 0, 0, 0], age: 0 }; // Dies
@@ -44,9 +45,9 @@ export function step(currentGrid: Grid, params: SimParams): Grid {
           p_born = 0;
         }
 
-        if (Math.random() < p_born) {
-          // 유전 알고리즘 실행
-          const childGene = runGeneticAlgorithm(currentGrid, influenceGrid, i, params);
+        if (rng() < p_born) {
+          // Run genetic algorithm for newborn cell.
+          const childGene = runGeneticAlgorithm(currentGrid, influenceGrid, i, params, rng);
           nextCell = { isAlive: true, gene: childGene, age: 1 }; // Born
         } else {
           nextCell = { ...currentCell }; // Stays dead
@@ -58,7 +59,7 @@ export function step(currentGrid: Grid, params: SimParams): Grid {
     nextCells.push(nextCell);
   }
 
-  // 3. 동기 커밋 (Synchronous Commit)
+  // 3. Synchronous commit
   return {
     ...currentGrid,
     cells: nextCells,

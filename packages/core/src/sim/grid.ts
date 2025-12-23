@@ -1,10 +1,10 @@
 import type { Grid, Cell } from "./types";
 
 /**
- * 그리드 관련 유틸리티 함수
+ * Grid-related utilities.
  */
 
-// 각 방향에 대한 (dx, dy) 변화량
+// (dx, dy) offsets for each direction.
 export const DIRECTIONS = {
   UP: [0, -1],
   DOWN: [0, 1],
@@ -17,13 +17,13 @@ export const DIRECTIONS = {
 };
 
 /**
- * 특정 칸의 이웃 인덱스를 토러스 경계 규칙에 따라 계산합니다.
- * @param index - 현재 칸의 인덱스
- * @param dx - x 방향 변화량
- * @param dy - y 방향 변화량
- * @param width - 그리드 너비
- * @param height - 그리드 높이
- * @returns 이웃 칸의 인덱스
+ * Compute a neighbor index using torus wrap-around.
+ * @param index - current cell index
+ * @param dx - x offset
+ * @param dy - y offset
+ * @param width - grid width
+ * @param height - grid height
+ * @returns neighbor cell index
  */
 export function getNeighborIndex(index: number, dx: number, dy: number, width: number, height: number): number {
   const x = index % width;
@@ -36,20 +36,20 @@ export function getNeighborIndex(index: number, dx: number, dy: number, width: n
 }
 
 /**
- * 특정 칸의 주변 8칸에 살아있는 이웃이 하나라도 있는지 확인합니다.
- * @param grid - 현재 그리드
- * @param index - 확인할 칸의 인덱스
- * @returns 살아있는 이웃이 있으면 true, 아니면 false
+ * Check whether any of the 8 neighbors is alive.
+ * @param grid - current grid
+ * @param index - target cell index
+ * @returns true if any neighbor is alive, otherwise false
  */
 export function hasAliveNeighbor(grid: Grid, index: number): boolean {
   return getNeighborIndices(grid, index).some(i => grid.cells[i].isAlive);
 }
 
 /**
- * 특정 칸의 주변 8칸 이웃의 인덱스 목록을 반환합니다.
- * @param grid - 현재 그리드
- * @param index - 기준 칸의 인덱스
- * @returns 이웃 인덱스들의 배열
+ * Return indices of the 8 neighboring cells.
+ * @param grid - current grid
+ * @param index - base cell index
+ * @returns array of neighbor indices
  */
 export function getNeighborIndices(grid: Grid, index: number): number[] {
   const { width, height } = grid;
@@ -62,10 +62,10 @@ export function getNeighborIndices(grid: Grid, index: number): number[] {
 }
 
 /**
- * 특정 칸의 주변 8칸 이웃 중 살아있는 세포 목록을 반환합니다.
- * @param grid - 현재 그리드
- * @param index - 기준 칸의 인덱스
- * @returns 살아있는 이웃 세포들의 배열
+ * Return alive neighboring cells among the 8 neighbors.
+ * @param grid - current grid
+ * @param index - base cell index
+ * @returns array of alive neighbor cells
  */
 export function getNeighbors(grid: Grid, index: number): Cell[] {
   return getNeighborIndices(grid, index)

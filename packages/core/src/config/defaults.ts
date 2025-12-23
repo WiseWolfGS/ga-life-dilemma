@@ -1,7 +1,7 @@
 import type { SimParams } from "./schema";
 
 /**
- * GA-Life 시뮬레이션의 기본 파라미터 값
+ * Default parameter values for GA-Life.
  */
 export const DEFAULT_PARAMS: SimParams = {
   alpha: 4,

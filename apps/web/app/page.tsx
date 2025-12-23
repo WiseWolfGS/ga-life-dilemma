@@ -7,15 +7,17 @@ import { useSimulation } from "@/ui/hooks/useSimulation";
 import type { ViewMode, GeneDirection } from "@/ui/types";
 import type { Grid, SimParams } from "@ga-life/core";
 
+type SavedState = { grid: Grid; params: SimParams; seed: number; rngState?: number };
+
 export default function Home() {
-  const { grid, params, setParams, stepForward, loadState } = useSimulation();
+  const { grid, params, setParams, stepForward, loadState, seed, setSeed, resetSimulation, getRngState } = useSimulation();
   const [viewMode, setViewMode] = useState<ViewMode>("life");
   const [geneDirection, setGeneDirection] = useState<GeneDirection>("avg");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
     if (!grid) return;
-    const state = { grid, params };
+    const state: SavedState = { grid, params, seed, rngState: getRngState() };
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -40,11 +42,17 @@ export default function Home() {
       try {
         const text = e.target?.result;
         if (typeof text !== "string") throw new Error("File is not a valid text file.");
-        const loadedState = JSON.parse(text) as { grid: Grid; params: SimParams };
-        
+        const loadedState = JSON.parse(text) as Partial<SavedState>;
+
         // Basic validation
         if (loadedState.grid && loadedState.params) {
-          loadState(loadedState);
+          const nextSeed = typeof loadedState.seed === "number" ? loadedState.seed : Date.now();
+          loadState({
+            grid: loadedState.grid,
+            params: loadedState.params,
+            seed: nextSeed,
+            rngState: loadedState.rngState,
+          });
         } else {
           alert("Error: Invalid file format.");
         }
@@ -54,7 +62,7 @@ export default function Home() {
       }
     };
     reader.readAsText(file);
-    
+
     // Reset file input to allow loading the same file again
     event.target.value = "";
   };
@@ -73,6 +81,9 @@ export default function Home() {
             <ParamPanel
               params={params}
               setParams={setParams}
+              seed={seed}
+              setSeed={setSeed}
+              onReset={() => resetSimulation(seed)}
               viewMode={viewMode}
               setViewMode={setViewMode}
               geneDirection={geneDirection}
@@ -93,4 +104,3 @@ export default function Home() {
     </main>
   );
 }
-

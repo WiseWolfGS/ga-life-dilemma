@@ -1,11 +1,16 @@
 {
-  "name": "@ga-life/core",
-  "version": "0.1.0",
-  "main": "src/index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "name":  "@ga-life/core",
+    "version":  "0.1.0",
+    "main":  "src/index.ts",
+    "scripts":  {
+                    "test":  "vitest run"
+                },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "devDependencies":  {
+                            "vitest":  "^1.6.0"
+                        }
 }

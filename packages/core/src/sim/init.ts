@@ -1,13 +1,13 @@
 import type { Grid, Cell, Gene, TerrainType } from "./types";
+import type { RngLike } from "../lib/rng";
 
 const GENE_DOMAIN = [2, 4, 6, 8, 10];
 
 /**
- * 무작위 유전자를 생성합니다.
- * @returns {Gene} [U, D, L, R] 형태의 유전자
+ * Create a random form gene.
  */
-function createRandomGene(): Gene {
-  const getRandomGeneValue = () => GENE_DOMAIN[Math.floor(Math.random() * GENE_DOMAIN.length)];
+function createRandomGene(rng: RngLike): Gene {
+  const getRandomGeneValue = () => GENE_DOMAIN[Math.floor(rng() * GENE_DOMAIN.length)];
   return [
     getRandomGeneValue(),
     getRandomGeneValue(),
@@ -17,12 +17,11 @@ function createRandomGene(): Gene {
 }
 
 /**
- * 무작위 지형 타입을 생성합니다.
+ * Create a random terrain type.
  * (90% normal, 5% double, 5% half)
- * @returns {TerrainType}
  */
-function createRandomTerrain(): TerrainType {
-  const rand = Math.random();
+function createRandomTerrain(rng: RngLike): TerrainType {
+  const rand = rng();
   if (rand < 0.05) {
     return "double";
   }
@@ -33,26 +32,30 @@ function createRandomTerrain(): TerrainType {
 }
 
 /**
- * 지정된 크기와 초기 밀도에 따라 새로운 Grid를 생성합니다.
- *
- * @param width - 그리드의 너비
- * @param height - 그리드의 높이
- * @param initialDensity - 살아있는 세포의 초기 밀도 (기본값: 0.25)
- * @returns {Grid} 생성된 그리드 객체
+ * Initialize a grid with random cells and terrain.
+ * @param width - grid width
+ * @param height - grid height
+ * @param initialDensity - initial alive density (default 0.25)
+ * @param rng - random generator
  */
-export function createGrid(width: number, height: number, initialDensity = 0.25): Grid {
+export function createGrid(
+  width: number,
+  height: number,
+  initialDensity = 0.25,
+  rng: RngLike = Math.random
+): Grid {
   const cells: Cell[] = [];
   const terrain: TerrainType[] = [];
   const totalCells = width * height;
 
   for (let i = 0; i < totalCells; i++) {
-    const isAlive = Math.random() < initialDensity;
+    const isAlive = rng() < initialDensity;
     cells.push({
       isAlive,
-      gene: isAlive ? createRandomGene() : [0, 0, 0, 0], // 죽은 세포는 더미 유전자
+      gene: isAlive ? createRandomGene(rng) : [0, 0, 0, 0], // Dead cells use a zero gene.
       age: isAlive ? 1 : 0,
     });
-    terrain.push(createRandomTerrain());
+    terrain.push(createRandomTerrain(rng));
   }
 
   return {
