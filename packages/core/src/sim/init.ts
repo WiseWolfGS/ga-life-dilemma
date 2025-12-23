@@ -1,4 +1,4 @@
-import type { Grid, Cell, Gene } from "./types";
+import type { Grid, Cell, Gene, TerrainType } from "./types";
 
 const GENE_DOMAIN = [2, 4, 6, 8, 10];
 
@@ -17,6 +17,22 @@ function createRandomGene(): Gene {
 }
 
 /**
+ * 무작위 지형 타입을 생성합니다.
+ * (90% normal, 5% double, 5% half)
+ * @returns {TerrainType}
+ */
+function createRandomTerrain(): TerrainType {
+  const rand = Math.random();
+  if (rand < 0.05) {
+    return "double";
+  }
+  if (rand < 0.1) {
+    return "half";
+  }
+  return "normal";
+}
+
+/**
  * 지정된 크기와 초기 밀도에 따라 새로운 Grid를 생성합니다.
  *
  * @param width - 그리드의 너비
@@ -26,6 +42,7 @@ function createRandomGene(): Gene {
  */
 export function createGrid(width: number, height: number, initialDensity = 0.25): Grid {
   const cells: Cell[] = [];
+  const terrain: TerrainType[] = [];
   const totalCells = width * height;
 
   for (let i = 0; i < totalCells; i++) {
@@ -35,11 +52,13 @@ export function createGrid(width: number, height: number, initialDensity = 0.25)
       gene: isAlive ? createRandomGene() : [0, 0, 0, 0], // 죽은 세포는 더미 유전자
       age: isAlive ? 1 : 0,
     });
+    terrain.push(createRandomTerrain());
   }
 
   return {
     width,
     height,
     cells,
+    terrain,
   };
 }

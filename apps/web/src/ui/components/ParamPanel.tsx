@@ -9,6 +9,8 @@ interface ParamPanelProps {
   setViewMode: (mode: ViewMode) => void;
   geneDirection: GeneDirection;
   setGeneDirection: (direction: GeneDirection) => void;
+  onSave: () => void;
+  onLoadClick: () => void;
 }
 
 const ParamInput = ({ name, value, min, max, step, onChange }: { name: string; value: number; min: number; max: number; step: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; }) => (
@@ -21,24 +23,17 @@ const ParamInput = ({ name, value, min, max, step, onChange }: { name: string; v
 
 const GeneDirectionSelector = ({ geneDirection, setGeneDirection }: { geneDirection: GeneDirection; setGeneDirection: (direction: GeneDirection) => void; }) => {
   const directions: { label: string; value: GeneDirection }[] = [
-    { label: "Avg", value: "avg" },
-    { label: "Up", value: "up" },
-    { label: "Down", value: "down" },
-    { label: "Left", value: "left" },
-    { label: "Right", value: "right" },
+    { label: "Avg", value: "avg" }, { label: "Up", value: "up" }, { label: "Down", value: "down" }, { label: "Left", value: "left" }, { label: "Right", value: "right" },
   ];
-
   return (
-    <div className="pl-6 pt-2">
-      <div className="grid grid-cols-3 gap-2">
+    <div className="pl-6 pt-2"><div className="grid grid-cols-3 gap-2">
         {directions.map(({ label, value }) => (
           <label key={value} className="flex items-center gap-2 text-sm">
             <input type="radio" name="geneDirection" value={value} checked={geneDirection === value} onChange={() => setGeneDirection(value)} className="h-3 w-3" />
             {label}
           </label>
         ))}
-      </div>
-    </div>
+    </div></div>
   );
 };
 
@@ -46,24 +41,27 @@ const ViewModeSelector = ({ viewMode, setViewMode, geneDirection, setGeneDirecti
   <div className="space-y-2">
     <h4 className="text-base font-medium text-zinc-900 dark:text-zinc-50">View Mode</h4>
     <div className="flex flex-col gap-2">
-      <label className="flex items-center gap-2 text-sm">
-        <input type="radio" name="viewMode" value="life" checked={viewMode === "life"} onChange={() => setViewMode("life")} className="h-4 w-4" />
-        Life/Death
-      </label>
+      <label className="flex items-center gap-2 text-sm"><input type="radio" name="viewMode" value="life" checked={viewMode === "life"} onChange={() => setViewMode("life")} className="h-4 w-4" />Life/Death</label>
       <div>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="viewMode" value="gene" checked={viewMode === "gene"} onChange={() => setViewMode("gene")} className="h-4 w-4" />
-          Gene Map
-        </label>
-        {viewMode === "gene" && (
-          <GeneDirectionSelector geneDirection={geneDirection} setGeneDirection={setGeneDirection} />
-        )}
+        <label className="flex items-center gap-2 text-sm"><input type="radio" name="viewMode" value="gene" checked={viewMode === "gene"} onChange={() => setViewMode("gene")} className="h-4 w-4" />Gene Map</label>
+        {viewMode === "gene" && (<GeneDirectionSelector geneDirection={geneDirection} setGeneDirection={setGeneDirection} />)}
       </div>
+      <label className="flex items-center gap-2 text-sm"><input type="radio" name="viewMode" value="terrain" checked={viewMode === "terrain"} onChange={() => setViewMode("terrain")} className="h-4 w-4" />Terrain Map</label>
     </div>
   </div>
 );
 
-export function ParamPanel({ params, setParams, viewMode, setViewMode, geneDirection, setGeneDirection }: ParamPanelProps) {
+const FileIO = ({ onSave, onLoadClick }: { onSave: () => void; onLoadClick: () => void; }) => (
+    <div className="space-y-2">
+        <h4 className="text-base font-medium text-zinc-900 dark:text-zinc-50">Save / Load</h4>
+        <div className="flex gap-2">
+            <button onClick={onSave} className="flex-1 rounded-md bg-zinc-200 px-3 py-1.5 text-sm text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600">Save</button>
+            <button onClick={onLoadClick} className="flex-1 rounded-md bg-zinc-200 px-3 py-1.5 text-sm text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600">Load</button>
+        </div>
+    </div>
+);
+
+export function ParamPanel({ params, setParams, viewMode, setViewMode, geneDirection, setGeneDirection, onSave, onLoadClick }: ParamPanelProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setParams((prevParams) => ({ ...prevParams, [name]: Number(value) }));
@@ -83,6 +81,8 @@ export function ParamPanel({ params, setParams, viewMode, setViewMode, geneDirec
       </div>
       <hr className="border-zinc-200 dark:border-zinc-700" />
       <ViewModeSelector viewMode={viewMode} setViewMode={setViewMode} geneDirection={geneDirection} setGeneDirection={setGeneDirection} />
+      <hr className="border-zinc-200 dark:border-zinc-700" />
+      <FileIO onSave={onSave} onLoadClick={onLoadClick} />
     </div>
   );
 }

@@ -20,10 +20,16 @@ export function useSimulation() {
     });
   }, [params]);
 
+  // 불러온 데이터로 시뮬레이션 상태를 완전히 교체하는 함수
+  const loadState = useCallback((newState: { grid: Grid; params: SimParams }) => {
+    setGrid(newState.grid);
+    setParams(newState.params);
+  }, []);
+
   // 초기 그리드 생성 (최초 1회만 실행)
   useEffect(() => {
     setGrid(createGrid(SIM_WIDTH, SIM_HEIGHT));
   }, []);
 
-  return { grid, params, setParams, stepForward };
+  return { grid, params, setParams, stepForward, loadState };
 }

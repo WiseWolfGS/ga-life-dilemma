@@ -7,7 +7,7 @@ import { DIRECTIONS, getNeighborIndex } from "./grid";
  * @returns 각 칸의 총 영향력을 담은 배열
  */
 export function calculateInfluence(grid: Grid): number[] {
-  const { width, height, cells } = grid;
+  const { width, height, cells, terrain } = grid;
   const influenceGrid: number[] = new Array(width * height).fill(0);
 
   for (let i = 0; i < cells.length; i++) {
@@ -16,9 +16,17 @@ export function calculateInfluence(grid: Grid): number[] {
       continue;
     }
 
-    const [u, d, l, r] = cell.gene;
+    // 1. 현재 칸의 지형에 따른 영향력 배율 결정
+    const terrainType = terrain[i];
+    let multiplier = 1;
+    if (terrainType === "double") {
+      multiplier = 2;
+    } else if (terrainType === "half") {
+      multiplier = 0.5;
+    }
 
-    // 각 방향에 대한 영향력 값
+    // 2. 세포의 유전자에 기반한 기본 영향력 계산
+    const [u, d, l, r] = cell.gene;
     const influences = {
       UP: u,
       DOWN: d,
@@ -30,19 +38,17 @@ export function calculateInfluence(grid: Grid): number[] {
       DOWN_RIGHT: (d + r) / 2 - 1,
     };
 
-    // 8방향 이웃에 영향력 전파
+    // 3. 8방향 이웃에 지형 배율이 적용된 영향력 전파
     for (const key in DIRECTIONS) {
       const directionKey = key as keyof typeof DIRECTIONS;
       const [dx, dy] = DIRECTIONS[directionKey];
       const neighborIndex = getNeighborIndex(i, dx, dy, width, height);
-      influenceGrid[neighborIndex] += influences[directionKey];
+      
+      const finalInfluence = influences[directionKey] * multiplier;
+      influenceGrid[neighborIndex] += finalInfluence;
     }
   }
 
-  // MVP 체크리스트에 따라, 만약 영향력 값에 소수가 포함될 경우
-  // 이 단계에서 최종 합산된 S_total에 반올림을 적용할 수 있습니다.
-  // 현재 규칙 상으로는 정수 연산만 수행됩니다.
-  // return influenceGrid.map(s_total => Math.round(s_total * 10) / 10);
-
-  return influenceGrid;
+  // 최종 합산된 S_total에 반올림을 적용합니다.
+  return influenceGrid.map(s_total => Math.round(s_total * 10) / 10);
 }

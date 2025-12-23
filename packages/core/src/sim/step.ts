@@ -26,7 +26,11 @@ export function step(currentGrid: Grid, params: SimParams): Grid {
 
     if (currentCell.isAlive) {
       // Survival logic
-      const p_live = calculateSurvivalProbability(s_total, params);
+      let p_live = calculateSurvivalProbability(s_total, params);
+      if (p_live < params.epsilon) {
+        p_live = 0;
+      }
+
       if (Math.random() < p_live) {
         nextCell = { ...currentCell, age: currentCell.age + 1 };
       } else {
@@ -35,7 +39,11 @@ export function step(currentGrid: Grid, params: SimParams): Grid {
     } else {
       // Birth logic
       if (hasAliveNeighbor(currentGrid, i)) {
-        const p_born = calculateBirthProbability(s_total, params);
+        let p_born = calculateBirthProbability(s_total, params);
+        if (p_born < params.epsilon) {
+          p_born = 0;
+        }
+
         if (Math.random() < p_born) {
           // 유전 알고리즘 실행
           const childGene = runGeneticAlgorithm(currentGrid, influenceGrid, i, params);
