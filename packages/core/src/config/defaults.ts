@@ -9,7 +9,7 @@ export const DEFAULT_PARAMS: SimParams = {
   gamma: 1,
   mu: 20.0,
   nu: 27.5,
-  delta: -0.05,
+  delta: -0.07,
   epsilon: 0.03,
   p_mut: 0.02,
 };
