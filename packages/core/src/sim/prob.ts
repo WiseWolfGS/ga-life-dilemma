@@ -12,7 +12,7 @@ export function calculateSurvivalProbability(s_total: number, params: SimParams)
   const term = beta * (s_total - mu);
   const sigma_term = sigmoid(term);
 
-  const probability = alpha * sigma_term * Math.pow(1 - sigma_term, gamma) + delta;
+  const probability = Math.pow(alpha * sigma_term * (1 - sigma_term), gamma) + delta;
 
   return clip(probability, 0, 1);
 }
@@ -28,7 +28,7 @@ export function calculateBirthProbability(s_total: number, params: SimParams): n
   const term = beta * (s_total - nu);
   const sigma_term = sigmoid(term);
 
-  const probability = alpha * sigma_term * Math.pow(1 - sigma_term, gamma) + delta;
+  const probability = Math.pow(alpha * sigma_term * (1 - sigma_term), gamma) + delta;
 
   return clip(probability, 0, 1);
 }

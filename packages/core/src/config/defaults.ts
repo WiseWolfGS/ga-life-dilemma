@@ -5,11 +5,11 @@ import type { SimParams } from "./schema";
  */
 export const DEFAULT_PARAMS: SimParams = {
   alpha: 4,
-  beta: -0.3,
+  beta: -0.15,
   gamma: 1,
   mu: 27.0,
   nu: 34.5,
-  delta: 0.18,
-  epsilon: 0.003,
+  delta: -0.05,
+  epsilon: 0.03,
   p_mut: 0.02,
 };

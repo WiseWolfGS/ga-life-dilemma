@@ -62,9 +62,9 @@ GA-Life는 기존 인공 생명 프로젝트들과 다음과 같은 차별점을
     <수식 - p_live: 생존 확률, p_born: 탄생 확률>
     ```math
     \begin{aligned}
-    &p_{live}(S_{total}) = \text{clip}(\alpha \cdot \{\sigma(\beta \cdot (S_{total} - \mu))\} \cdot \{1 - \sigma(\beta \cdot (S_{total} - \mu))\}^\gamma + \delta, 0, 1) \\
+    &p_{live}(S_{total}) = \text{clip}([\alpha \cdot \{\sigma(\beta \cdot (S_{total} - \mu))\} \cdot \{1 - \sigma(\beta \cdot (S_{total} - \mu))\}]^\gamma + \delta, 0, 1) \\
     &p_{dead}(S_{total}) = 1 - p_{live}(S_{total}) \\
-    &p_{born}(S_{total}) = \text{clip}(\alpha \cdot \{\sigma(\beta \cdot (S_{total} - \nu))\} \cdot \{1 - \sigma(\beta \cdot (S_{total} - \nu))\}^\gamma + \delta, 0, 1) \\
+    &p_{born}(S_{total}) = \text{clip}([\alpha \cdot \{\sigma(\beta \cdot (S_{total} - \nu))\} \cdot \{1 - \sigma(\beta \cdot (S_{total} - \nu))\}]^\gamma + \delta, 0, 1) \\
     &p_{unborn}(S_{total}) = 1 - p_{born}(S_{total})
     \end{aligned}
     ```
@@ -98,12 +98,12 @@ GA-Life 모델의 핵심 동작을 제어하는 주요 파라미터는 다음과
 | 파라미터 (Parameter) | 기본값 (Default) | 설명 (Description)                                                               |
 | :------------------- | :--------------- | :------------------------------------------------------------------------------- |
 | `α` (alpha)          | `4`              | 확률 곡선의 전체적인 높이를 조절합니다.                                          |
-| `β` (beta)           | `-0.3`           | 확률 곡선의 민감도(기울기)를 조절합니다. 음수 값은 볼록한 형태를 만듭니다.        |
-| `γ` (gamma)          | `1`              | 확률 곡선 우측의 감쇠 정도를 조절합니다.                                         |
+| `β` (beta)           | `-0.15`          | 확률 곡선의 민감도(기울기)를 조절합니다. 음수 값은 볼록한 형태를 만듭니다.        |
+| `γ` (gamma)          | `1`              | 확률 곡선의 민감도(기울기)를 조절합니다.                                         |
 | `μ` (mu)             | `27.0`           | **생존** 확률이 최대가 되는 최적 영향력(`S_total`) 값입니다.                     |
 | `ν` (nu)             | `34.5`           | **탄생** 확률이 최대가 되는 최적 영향력(`S_total`) 값입니다.                     |
-| `δ` (delta)          | `0.18`          | 전체 확률에 더해지는 기본 상수로, 생존/탄생의 기본 기회를 조절합니다.            |
-| `ε` (epsilon)        | `0.003`          | 이 값보다 작은 확률은 0으로 처리하여 불필요한 연산을 줄입니다.                   |
+| `δ` (delta)          | `-0.05`          | 전체 확률에 더해지는 기본 상수로, 생존/탄생의 기본 기회를 조절합니다.            |
+| `ε` (epsilon)        | `0.03`           | 이 값보다 작은 확률은 0으로 처리하여 불필요한 연산을 줄입니다.                   |
 | `p_mut`              | `0.02`           | 자손의 형태 유전자에 변이가 일어날 확률입니다.                                        |
 | `θ` (theta)          | `0.01`           | 죄수의 딜레마 상호작용의 보상/비용 크기를 결정합니다.                            |
 
