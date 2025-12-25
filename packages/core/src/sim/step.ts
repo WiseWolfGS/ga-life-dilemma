@@ -5,6 +5,9 @@ import { calculateInfluence } from "./influence";
 import { calculateSurvivalProbability, calculateBirthProbability } from "./prob";
 import type { RngLike } from "../lib/rng";
 import { runGeneticAlgorithm } from "./ga";
+import type { SimStats } from "./stats";
+
+type StepResult = { grid: Grid; stats: SimStats };
 
 /**
  * Advance the simulation by one tick.
@@ -12,11 +15,15 @@ import { runGeneticAlgorithm } from "./ga";
  * @param params - simulation parameters
  * @returns next generation grid
  */
-export function step(currentGrid: Grid, params: SimParams, rng: RngLike = Math.random): Grid {
+function advance(currentGrid: Grid, params: SimParams, rng: RngLike = Math.random): StepResult {
   // 1. Influence aggregation
   const influenceGrid = calculateInfluence(currentGrid);
 
   const nextCells: Cell[] = [];
+  let births = 0;
+  let deaths = 0;
+  let aliveCount = 0;
+  let ageSum = 0;
 
   // 2. Judgment & reproduction
   for (let i = 0; i < currentGrid.cells.length; i++) {
@@ -56,12 +63,45 @@ export function step(currentGrid: Grid, params: SimParams, rng: RngLike = Math.r
         nextCell = { ...currentCell }; // Stays dead
       }
     }
+    if (currentCell.isAlive && !nextCell.isAlive) {
+      deaths += 1;
+    } else if (!currentCell.isAlive && nextCell.isAlive) {
+      births += 1;
+    }
+    if (nextCell.isAlive) {
+      aliveCount += 1;
+      ageSum += nextCell.age;
+    }
+
     nextCells.push(nextCell);
   }
 
   // 3. Synchronous commit
-  return {
+  const nextGrid = {
     ...currentGrid,
     cells: nextCells,
   };
+
+  const totalCells = currentGrid.cells.length;
+  return {
+    grid: nextGrid,
+    stats: {
+      density: totalCells > 0 ? aliveCount / totalCells : 0,
+      births,
+      deaths,
+      avgAge: aliveCount > 0 ? ageSum / aliveCount : 0,
+    },
+  };
+}
+
+export function step(currentGrid: Grid, params: SimParams, rng: RngLike = Math.random): Grid {
+  return advance(currentGrid, params, rng).grid;
+}
+
+export function stepWithStats(
+  currentGrid: Grid,
+  params: SimParams,
+  rng: RngLike = Math.random
+): StepResult {
+  return advance(currentGrid, params, rng);
 }

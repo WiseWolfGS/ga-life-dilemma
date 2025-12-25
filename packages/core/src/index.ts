@@ -18,3 +18,4 @@ export * from "./sim/influence";
 export * from "./sim/prob";
 export * from "./sim/step";
 export * from "./sim/hash";
+export * from "./sim/stats";
