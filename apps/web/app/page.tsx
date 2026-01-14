@@ -5,9 +5,40 @@ import { ParamPanel } from "@/ui/components/ParamPanel";
 import { SimCanvas } from "@/ui/components/SimCanvas";
 import { useSimulation } from "@/ui/hooks/useSimulation";
 import type { ViewMode, GeneDirection } from "@/ui/types";
-import type { Grid, SimParams } from "@ga-life/core";
+import type { Grid, SimParams, SimStats } from "@ga-life/core";
 
-type SavedState = { grid: Grid; params: SimParams; seed: number; rngState?: number; tick?: number };
+type SavedState = {
+  schemaVersion?: number;
+  grid: Grid;
+  params: SimParams;
+  seed: number;
+  initialDensity?: number;
+  rngState?: number;
+  tick?: number;
+};
+
+const SCHEMA_VERSION = 1;
+const STATS_SCHEMA_VERSION = 1;
+
+type StatsHistoryState = {
+  schemaVersion: number;
+  seed: number;
+  tick: number;
+  params: SimParams;
+  history: Array<{
+    tick: number;
+    density: number;
+    avgAge: number;
+    births: number;
+    deaths: number;
+    geneEntropy: number;
+    geneHistogram: SimStats["geneHistogram"];
+    clusterCount: number;
+    avgClusterSize: number;
+    largestClusterSize: number;
+    terrainBreakdown: SimStats["terrainBreakdown"];
+  }>;
+};
 
 const GENE_VALUES = new Set<number>([0, 2, 4, 6, 8, 10]);
 const TERRAIN_VALUES = new Set<string>(["normal", "double", "half"]);
@@ -22,15 +53,25 @@ const isFiniteNumber = (value: unknown): value is number =>
 const isPositiveInt = (value: unknown): value is number =>
   isFiniteNumber(value) && Number.isInteger(value) && value > 0;
 
-const isGene = (value: unknown): value is [number, number, number, number] =>
+const isSchemaVersion = (value: unknown): value is number =>
+  isFiniteNumber(value) && Number.isInteger(value) && value > 0;
+
+const isGeneStrict = (value: unknown): value is [number, number, number, number] =>
   Array.isArray(value) &&
   value.length === 4 &&
   value.every((v) => isFiniteNumber(v) && GENE_VALUES.has(v));
 
+const isGeneLen4Finite = (value: unknown): value is [number, number, number, number] =>
+  Array.isArray(value) &&
+  value.length === 4 &&
+  value.every((v) => isFiniteNumber(v));
+
 const isCell = (value: unknown): value is Grid["cells"][number] => {
   if (!isObject(value)) return false;
   const { isAlive, gene, age } = value;
-  return typeof isAlive === "boolean" && isGene(gene) && isFiniteNumber(age) && age >= 0;
+  if (typeof isAlive !== "boolean") return false;
+  if (!isFiniteNumber(age) || age < 0) return false;
+  return isAlive ? isGeneStrict(gene) : isGeneLen4Finite(gene);
 };
 
 const isTerrainArray = (value: unknown, length: number): value is Grid["terrain"] =>
@@ -53,11 +94,23 @@ const isSimParams = (value: unknown): value is SimParams => {
   return PARAM_KEYS.every((key) => isFiniteNumber(value[key]));
 };
 
+const normalizeGridForSave = (grid: Grid): Grid => {
+  const nextCells = grid.cells.map((cell) =>
+    cell.isAlive ? cell : { ...cell, gene: [0, 0, 0, 0] }
+  );
+  return { ...grid, cells: nextCells };
+};
+
 const isSavedState = (value: unknown): value is SavedState => {
   if (!isObject(value)) return false;
-  const { grid, params, seed, rngState, tick } = value;
+  const { schemaVersion, grid, params, seed, initialDensity, rngState, tick } = value;
+  if (schemaVersion !== undefined) {
+    if (!isSchemaVersion(schemaVersion)) return false;
+    if (schemaVersion > SCHEMA_VERSION) return false;
+  }
   if (!isGrid(grid) || !isSimParams(params)) return false;
   if (seed !== undefined && !isFiniteNumber(seed)) return false;
+  if (initialDensity !== undefined && !isFiniteNumber(initialDensity)) return false;
   if (rngState !== undefined && !isFiniteNumber(rngState)) return false;
   if (tick !== undefined && (!isFiniteNumber(tick) || tick < 0)) return false;
   return true;
@@ -68,6 +121,8 @@ export default function Home() {
     grid,
     params,
     setParams,
+    initialDensity,
+    setInitialDensity,
     stepForward,
     loadState,
     seed,
@@ -75,6 +130,7 @@ export default function Home() {
     resetSimulation,
     getRngState,
     stats,
+    history,
     tick,
     isRunning,
     setIsRunning,
@@ -87,12 +143,22 @@ export default function Home() {
   const lastAutoDownloadTickRef = useRef<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("life");
   const [geneDirection, setGeneDirection] = useState<GeneDirection>("avg");
+  const [historyVisibleCount, setHistoryVisibleCount] = useState<number>(10);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const downloadState = (label?: string) => {
     if (!grid) return;
     try {
-      const state: SavedState = { grid, params, seed, rngState: getRngState(), tick };
+      const normalizedGrid = normalizeGridForSave(grid);
+      const state: SavedState = {
+        schemaVersion: SCHEMA_VERSION,
+        grid: normalizedGrid,
+        params,
+        seed,
+        initialDensity,
+        rngState: getRngState(),
+        tick,
+      };
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -107,6 +173,43 @@ export default function Home() {
     } catch (error) {
       console.warn("Auto download failed:", error);
       setAutoDownloadWarning("Auto download failed or was blocked by the browser.");
+    }
+  };
+
+  const downloadStatsHistory = () => {
+    if (!history.length) return;
+    try {
+      const statsState: StatsHistoryState = {
+        schemaVersion: STATS_SCHEMA_VERSION,
+        seed,
+        tick,
+        params,
+        history: history.map((entry) => ({
+          tick: entry.tick,
+          density: entry.stats.density,
+          avgAge: entry.stats.avgAge,
+          births: entry.stats.births,
+          deaths: entry.stats.deaths,
+          geneEntropy: entry.stats.geneEntropy,
+          geneHistogram: entry.stats.geneHistogram,
+          clusterCount: entry.stats.clusterCount,
+          avgClusterSize: entry.stats.avgClusterSize,
+          largestClusterSize: entry.stats.largestClusterSize,
+          terrainBreakdown: entry.stats.terrainBreakdown,
+        })),
+      };
+      const blob = new Blob([JSON.stringify(statsState, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ga-life-stats-${new Date().toISOString()}-t${tick}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.warn("Stats download failed:", error);
+      alert("Error: Failed to export stats. See console for details.");
     }
   };
 
@@ -136,6 +239,7 @@ export default function Home() {
             grid: parsed.grid,
             params: parsed.params,
             seed: nextSeed,
+            initialDensity: parsed.initialDensity,
             rngState: parsed.rngState,
             tick: parsed.tick,
           });
@@ -182,9 +286,11 @@ export default function Home() {
             <ParamPanel
               params={params}
               setParams={setParams}
+              initialDensity={initialDensity}
+              setInitialDensity={setInitialDensity}
               seed={seed}
               setSeed={setSeed}
-              onReset={() => resetSimulation(seed)}
+              onReset={resetSimulation}
               viewMode={viewMode}
               setViewMode={setViewMode}
               geneDirection={geneDirection}
@@ -268,6 +374,79 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <span>Deaths</span>
                 <span className="font-mono">{stats ? stats.deaths : 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Gene Entropy</span>
+                <span className="font-mono">{stats ? stats.geneEntropy.toFixed(3) : "0.000"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Clusters</span>
+                <span className="font-mono">{stats ? stats.clusterCount : 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Avg Cluster</span>
+                <span className="font-mono">{stats ? stats.avgClusterSize.toFixed(2) : "0.00"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Largest Cluster</span>
+                <span className="font-mono">{stats ? stats.largestClusterSize : 0}</span>
+              </div>
+            </div>
+            <div className="w-full max-w-xl rounded-lg border border-zinc-200 bg-white/60 p-3 text-xs text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm font-medium">Recent History</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={downloadStatsHistory}
+                    disabled={!history.length}
+                    className="rounded-md bg-zinc-200 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600"
+                  >
+                    Export Stats
+                  </button>
+                  <span className="text-xs">Rows</span>
+                  <input
+                    type="range"
+                    min={5}
+                    max={50}
+                    step={5}
+                    value={historyVisibleCount}
+                    onChange={(event) => setHistoryVisibleCount(Number(event.target.value))}
+                    className="w-28 cursor-pointer"
+                  />
+                  <span className="font-mono">{historyVisibleCount}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-8 gap-2 border-b border-zinc-200 pb-1 font-semibold dark:border-zinc-800">
+                <span>Tick</span>
+                <span>Density</span>
+                <span>Avg Age</span>
+                <span>Entropy</span>
+                <span>Clusters</span>
+                <span>Avg Cl</span>
+                <span>Max Cl</span>
+                <span>Births</span>
+                <span>Deaths</span>
+              </div>
+              <div className="mt-2 max-h-56 overflow-y-auto">
+                {history
+                  .slice(-historyVisibleCount)
+                  .reverse()
+                  .map((entry) => (
+                    <div key={entry.tick} className="grid grid-cols-8 gap-2 py-1 font-mono">
+                      <span>{entry.tick}</span>
+                      <span>{entry.stats.density.toFixed(4)}</span>
+                      <span>{entry.stats.avgAge.toFixed(2)}</span>
+                      <span>{entry.stats.geneEntropy.toFixed(3)}</span>
+                      <span>{entry.stats.clusterCount}</span>
+                      <span>{entry.stats.avgClusterSize.toFixed(2)}</span>
+                      <span>{entry.stats.largestClusterSize}</span>
+                      <span>{entry.stats.births}</span>
+                      <span>{entry.stats.deaths}</span>
+                    </div>
+                  ))}
+                {history.length === 0 && (
+                  <div className="py-2 text-center text-zinc-500">No history yet.</div>
+                )}
               </div>
             </div>
           </div>

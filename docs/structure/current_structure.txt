@@ -2,32 +2,33 @@
 |-- LICENSE
 |-- README.md
 |-- apps
-|                                                                   `-- web
-|       |                                                           `-- app
-|       |   |                                                       `-- favicon.ico
-|       |   |                                                       `-- globals.css
-|       |   |                                                       `-- layout.tsx
-|       |                                                           `-- page.tsx
+|   `-- web
+|       |-- app
+|       |   |-- favicon.ico
+|       |   |-- globals.css
+|       |   |-- layout.tsx
+|       |   `-- page.tsx
 |       |-- eslint.config.mjs
 |       |-- next-env.d.ts
 |       |-- next.config.ts
 |       |-- package.json
 |       |-- postcss.config.mjs
 |       |-- public
-|       |   |                                                       `-- file.svg
-|       |   |                                                       `-- globe.svg
-|       |   |                                                       `-- next.svg
-|       |   |                                                       `-- vercel.svg
-|       |                                                           `-- window.svg
+|       |   |-- file.svg
+|       |   |-- globe.svg
+|       |   |-- next.svg
+|       |   |-- vercel.svg
+|       |   `-- window.svg
 |       |-- src
-|       |                                                           `-- ui
-|       |       |                                                   `-- components
-|       |       |                                                   `-- hooks
-|       |                                                           `-- types.ts
+|       |   `-- ui
+|       |       |-- components
+|       |       |-- hooks
+|       |       `-- types.ts
 |       `-- tsconfig.json
 |-- docs
 |   |-- develop_log
-|   |   `-- 20251222_developlog.md
+|   |   |-- 20251222_developlog.md
+|   |   `-- 20251223_developlog.md
 |   |-- etc
 |   |   |-- develop_commands.md
 |   |   `-- mvp_checklist.md
@@ -41,22 +42,27 @@
 |-- packages
 |   `-- core
 |       |-- package.json
-|       `-- src
-|           |-- config
-|           |   |                                                   `-- defaults.ts
-|           |                                                       `-- schema.ts
-|           |-- index.ts
-|           |-- lib
-|           |                                                       `-- math.ts
-|           `-- sim
-|               |                                                   `-- ga.ts
-|               |                                                   `-- grid.ts
-|               |                                                   `-- influence.ts
-|               |                                                   `-- init.ts
-|               |                                                   `-- prob.ts
-|               |                                                   `-- step.ts
-|                                                                   `-- types.ts
+|       |-- src
+|       |   |-- config
+|       |   |   |-- defaults.ts
+|       |   |   `-- schema.ts
+|       |   |-- index.ts
+|       |   |-- lib
+|       |   |   |-- math.ts
+|       |   |   `-- rng.ts
+|       |   `-- sim
+|       |       |-- ga.ts
+|       |       |-- grid.ts
+|       |       |-- hash.ts
+|       |       |-- influence.ts
+|       |       |-- init.ts
+|       |       |-- prob.ts
+|       |       |-- reproducibility.test.ts
+|       |       |-- stats.ts
+|       |       |-- step.ts
+|       |       `-- types.ts
+|       `-- tsconfig.json
 |-- pnpm-lock.yaml
 `-- pnpm-workspace.yaml
 
-19 directories, 40 files
+19 directories, 46 files

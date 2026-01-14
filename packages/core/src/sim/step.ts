@@ -5,7 +5,8 @@ import { calculateInfluence } from "./influence";
 import { calculateSurvivalProbability, calculateBirthProbability } from "./prob";
 import type { RngLike } from "../lib/rng";
 import { runGeneticAlgorithm } from "./ga";
-import type { SimStats } from "./stats";
+import { computeGridStats, type SimStats, type TerrainStats } from "./stats";
+import type { TerrainType } from "./types";
 
 type StepResult = { grid: Grid; stats: SimStats };
 
@@ -22,13 +23,18 @@ function advance(currentGrid: Grid, params: SimParams, rng: RngLike = Math.rando
   const nextCells: Cell[] = [];
   let births = 0;
   let deaths = 0;
-  let aliveCount = 0;
-  let ageSum = 0;
+
+  const terrainEvents: Record<TerrainType, { births: number; deaths: number }> = {
+    normal: { births: 0, deaths: 0 },
+    double: { births: 0, deaths: 0 },
+    half: { births: 0, deaths: 0 },
+  };
 
   // 2. Judgment & reproduction
   for (let i = 0; i < currentGrid.cells.length; i++) {
     const currentCell = currentGrid.cells[i];
     const s_total = influenceGrid[i];
+    const terrainType = currentGrid.terrain[i];
 
     let nextCell: Cell;
 
@@ -65,14 +71,11 @@ function advance(currentGrid: Grid, params: SimParams, rng: RngLike = Math.rando
     }
     if (currentCell.isAlive && !nextCell.isAlive) {
       deaths += 1;
+      terrainEvents[terrainType].deaths += 1;
     } else if (!currentCell.isAlive && nextCell.isAlive) {
       births += 1;
+      terrainEvents[terrainType].births += 1;
     }
-    if (nextCell.isAlive) {
-      aliveCount += 1;
-      ageSum += nextCell.age;
-    }
-
     nextCells.push(nextCell);
   }
 
@@ -82,14 +85,24 @@ function advance(currentGrid: Grid, params: SimParams, rng: RngLike = Math.rando
     cells: nextCells,
   };
 
-  const totalCells = currentGrid.cells.length;
+  const gridStats = computeGridStats(nextGrid);
+  const terrainBreakdown = Object.keys(gridStats.terrainBreakdown).reduce((acc, key) => {
+    const terrainKey = key as TerrainType;
+    acc[terrainKey] = {
+      ...gridStats.terrainBreakdown[terrainKey],
+      births: terrainEvents[terrainKey].births,
+      deaths: terrainEvents[terrainKey].deaths,
+    };
+    return acc;
+  }, {} as Record<TerrainType, TerrainStats>);
+
   return {
     grid: nextGrid,
     stats: {
-      density: totalCells > 0 ? aliveCount / totalCells : 0,
+      ...gridStats,
       births,
       deaths,
-      avgAge: aliveCount > 0 ? ageSum / aliveCount : 0,
+      terrainBreakdown,
     },
   };
 }
